@@ -1,1 +1,1 @@
-# ansible-zabbix-openshift
+Instalação automatizada do zabbix no openshift utilizando ansible
