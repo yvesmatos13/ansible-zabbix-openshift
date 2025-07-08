@@ -1,0 +1,35 @@
+- name: Create Zabbix Web Interface
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: zabbix-web
+        namespace: "{{ namespace }}"
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: zabbix-web
+        template:
+          metadata:
+            labels:
+              app: zabbix-web
+          spec:
+            containers:
+              - name: zabbix-web
+                image: zabbix/zabbix-web-nginx-mysql:alpine-6.0-latest
+                env:
+                  - name: DB_SERVER_HOST
+                    value: mysql
+                  - name: MYSQL_DATABASE
+                    value: "{{ mysql_database }}"
+                  - name: MYSQL_USER
+                    value: "{{ mysql_user }}"
+                  - name: MYSQL_PASSWORD
+                    value: "{{ mysql_password }}"
+                  - name: ZBX_SERVER_HOST
+                    value: zabbix-server
+                ports:
+                  - containerPort: 8080
+    kubeconfig: "{{ kubeconfig }}"

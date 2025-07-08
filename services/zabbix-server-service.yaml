@@ -1,0 +1,17 @@
+- name: Expose Zabbix Server Service
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zabbix-server
+        namespace: "{{ namespace }}"
+      spec:
+        selector:
+          app: zabbix-server
+        ports:
+          - protocol: TCP
+            port: 10051
+            targetPort: 10051
+        type: ClusterIP
+    kubeconfig: "{{ kubeconfig }}"

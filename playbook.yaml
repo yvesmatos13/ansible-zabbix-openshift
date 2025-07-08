@@ -1,0 +1,54 @@
+---
+- name: Deploy Zabbix + MySQL on OpenShift
+  hosts: localhost
+  gather_facts: no
+  vars:
+    namespace: zabbix
+    mysql_user: zabbix
+    mysql_password: zabbixpass
+    mysql_database: zabbixdb
+    kubeconfig: "{{ playbook_dir }}/kube/config"
+
+  tasks:
+
+    - name: Criando namespace
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/openshift/namespace.yaml"
+
+    - name: Criando mysql-pvc
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/mysql/mysql-pvc.yaml"
+
+    - name: Criando myql-deployment
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/mysql/mysql-deployment.yaml"
+
+    - name: Criando zabbix-server-deployment
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/zabbix/zabbix-server-deployment.yaml"
+
+    - name: Wait for Zabbix Server pod to be ready
+      shell: |
+        export KUBECONFIG={{ kubeconfig }}
+        until oc get pod -n {{ namespace }} -l app=zabbix-server -o jsonpath="{.items[0].status.phase}" | grep -q Running; do
+          echo "Waiting for pod..."
+          sleep 5
+        done
+      delegate_to: localhost
+
+    - name: Exporta create.sql do zabbix-server
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/tasks/export_create_sql.yaml"
+
+    - name: Importa create.sql no mysql
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/tasks/import_create_sql.yaml"
+
+    - name: Criando service do mysql
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/services/mysql-service.yaml"
+
+    - name: Criando service do mysql
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/services/zabbix-server-service.yaml"
+
+    - name: Criando zabbix-web-deployment 
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/zabbix/zabbix-web-deployment.yaml"
+
+    - name: Criando zabbix-web-deployment 
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/services/zabbix-web-service.yaml"
+
+    - name: Criando Rota zabbix web 
+      ansible.builtin.import_tasks: "{{ playbook_dir }}/routes/zabbix-web-route.yaml"

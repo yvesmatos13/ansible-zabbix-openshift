@@ -1,0 +1,17 @@
+- name: Expose Zabbix Web Interface
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zabbix-web-service
+        namespace: "{{ namespace }}"
+      spec:
+        selector:
+          app: zabbix-web
+        ports:
+          - protocol: TCP
+            port: 80
+            targetPort: 8080
+        type: ClusterIP
+    kubeconfig: "{{ kubeconfig }}"

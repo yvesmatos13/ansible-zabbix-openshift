@@ -1,0 +1,17 @@
+- name: Expose Route for Zabbix Web Interface
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: route.openshift.io/v1
+      kind: Route
+      metadata:
+        name: zabbix-web-route
+        namespace: "{{ namespace }}"
+      spec:
+        to:
+          kind: Service
+          name: zabbix-web-service
+        port:
+          targetPort: 8080
+        tls:
+          termination: edge
+    kubeconfig: "{{ kubeconfig }}"

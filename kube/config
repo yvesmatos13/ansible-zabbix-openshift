@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: api.cluster-hkmvf.sandbox3266.opentlc.com:6443
+  cluster:
+    server: https://api.cluster-hkmvf.sandbox3266.opentlc.com:6443
+    insecure-skip-tls-verify: true
+
+users:
+- name: admin
+  user:
+    token: sha256~y1NAtbpfJhk80j0s6xdhbbTdIMYqR7BWxx0M_lE8VDA
+
+contexts:
+- name: zabbix
+  context:
+    cluster: api.cluster-hkmvf.sandbox3266.opentlc.com:6443
+    user: admin
+    namespace: zabbix
+
+current-context: zabbix

@@ -1,0 +1,33 @@
+- name: Create Zabbix Server Deployment
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: zabbix-server
+        namespace: "{{ namespace }}"
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: zabbix-server
+        template:
+          metadata:
+            labels:
+              app: zabbix-server
+          spec:
+            containers:
+              - name: zabbix-server
+                image: zabbix/zabbix-server-mysql:alpine-6.0-latest
+                env:
+                  - name: DB_SERVER_HOST
+                    value: mysql
+                  - name: MYSQL_DATABASE
+                    value: "{{ mysql_database }}"
+                  - name: MYSQL_USER
+                    value: "{{ mysql_user }}"
+                  - name: MYSQL_PASSWORD
+                    value: "{{ mysql_password }}"
+                ports:
+                  - containerPort: 10051
+    kubeconfig: "{{ kubeconfig }}"

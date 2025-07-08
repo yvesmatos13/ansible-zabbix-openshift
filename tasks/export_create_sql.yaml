@@ -1,0 +1,31 @@
+- name: Copy create.sql.gz to /tmp inside Zabbix Server pod
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc exec -n {{ namespace }} $(oc get pod -n {{ namespace }} -l app=zabbix-server -o jsonpath="{.items[0].metadata.name}") -- \
+    cp /usr/share/doc/zabbix-server-mysql/create.sql.gz /tmp/create.sql.gz
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5
+
+- name: Decompress create.sql.gz inside Zabbix Server pod
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc exec -n {{ namespace }} $(oc get pod -n {{ namespace }} -l app=zabbix-server -o jsonpath="{.items[0].metadata.name}") -- \
+    gunzip -f /tmp/create.sql.gz
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5
+
+- name: Copiar create.sql do pod para a máquina local
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc cp {{ namespace }}/$(oc get pod -n {{ namespace }} -l app=zabbix-server -o jsonpath="{.items[0].metadata.name}"):/tmp/create.sql {{ playbook_dir }}/create.sql
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5

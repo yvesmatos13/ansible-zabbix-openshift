@@ -1,0 +1,15 @@
+- name: Create PersistentVolumeClaim for MySQL
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: mysql-pvc
+        namespace: "{{ namespace }}"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+    kubeconfig: "{{ kubeconfig }}"

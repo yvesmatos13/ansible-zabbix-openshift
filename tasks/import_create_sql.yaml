@@ -1,0 +1,45 @@
+- name: Drop zabbixdb from Zabbix Server pod
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc exec -n {{ namespace }} $(oc get pod -n {{ namespace }} -l app=mysql -o jsonpath="{.items[0].metadata.name}") -- \
+    mysql -u root -p{{ mysql_password }} -e "
+    DROP DATABASE {{ mysql_database }};"
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5
+
+- name: Create zabbixdb from Zabbix Server pod
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc exec -n {{ namespace }} $(oc get pod -n {{ namespace }} -l app=mysql -o jsonpath="{.items[0].metadata.name}") -- \
+    mysql -u root -p{{ mysql_password }} -e "
+    CREATE DATABASE {{ mysql_database }} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;"
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5
+
+- name: Copiar create.sql para o pod MySQL
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    oc cp {{ playbook_dir }}/create.sql {{ namespace }}/$(oc get pod -n {{ namespace }} -l app=mysql -o jsonpath="{.items[0].metadata.name}"):\
+    /tmp/create.sql
+  delegate_to: localhost
+
+- name: Aguardar 5 segundo
+  pause:
+    seconds: 5
+
+- name: Importar schema para o MySQL via stdin
+  shell: |
+    export KUBECONFIG={{ kubeconfig }}
+    cat {{ playbook_dir }}/create.sql | oc exec -i -n {{ namespace }} $(oc get pod -n {{ namespace }} -l app=mysql -o jsonpath="{.items[0].metadata.name}") -- \
+    mysql -uroot -p{{ mysql_password }} {{ mysql_database }}
+  delegate_to: localhost
+
+- name: Aguardar 15 segundo
+  pause:
+    seconds: 15

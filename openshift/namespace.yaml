@@ -1,0 +1,6 @@
+- name: Create Namespace
+  kubernetes.core.k8s:
+    state: present
+    kind: Namespace
+    name: "{{ namespace }}"
+    kubeconfig: "{{ kubeconfig }}"
